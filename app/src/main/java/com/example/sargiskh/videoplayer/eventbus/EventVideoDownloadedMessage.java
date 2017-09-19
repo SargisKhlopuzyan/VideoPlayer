@@ -7,18 +7,18 @@ public class EventVideoDownloadedMessage {
 
     private String downloadedVideoName = null;
     private boolean isConnectionError = false;
-    private boolean isCachingFinished = false;
+    private boolean isCaching = false;
 
-    public EventVideoDownloadedMessage(boolean isConnectionError, boolean isCachingFinished) {
+    public EventVideoDownloadedMessage(boolean isConnectionError, boolean isCaching) {
         this.downloadedVideoName = null;
         this.isConnectionError = isConnectionError;
-        this.isCachingFinished = isCachingFinished;
+        this.isCaching = isCaching;
     }
 
-    public EventVideoDownloadedMessage(String downloadedVideoName, boolean isCachingFinished) {
+    public EventVideoDownloadedMessage(String downloadedVideoName, boolean isCaching) {
         this.isConnectionError = false;
         this.downloadedVideoName = downloadedVideoName;
-        this.isCachingFinished = isCachingFinished;
+        this.isCaching = isCaching;
     }
 
     public String getDownloadedVideoName() {
@@ -29,8 +29,8 @@ public class EventVideoDownloadedMessage {
         return isConnectionError;
     }
 
-    public boolean isCachingFinished() {
-        return isCachingFinished;
+    public boolean isCaching() {
+        return isCaching;
     }
 
 }

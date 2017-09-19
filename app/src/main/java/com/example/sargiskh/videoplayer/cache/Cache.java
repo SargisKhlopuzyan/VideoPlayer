@@ -23,19 +23,19 @@ public class Cache {
         return instance;
     }
 
-    boolean isCachingFinished = true;
+    boolean isCaching = true;
     private int currentPlayingIndex = 0;
 
     private ArrayList<String> cachedVideosList = new ArrayList<>();
 
 
     // Gets caching state
-    public void setCachingFinished(boolean isCaching) {
-        this.isCachingFinished = isCaching;
+    public void setCaching(boolean isCaching) {
+        this.isCaching = isCaching;
     }
     // Sets caching state
-    public boolean isCachingFinished() {
-        return isCachingFinished;
+    public boolean isCaching() {
+        return isCaching;
     }
 
 

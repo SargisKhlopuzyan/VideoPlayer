@@ -19,5 +19,5 @@ public class Constants {
     public static final String VIDEO_PLAYED_DURATION = "VIDEO_PLAYED_DURATION";
     public static final String PROGRESS_BAR_VISIBILITY = "PROGRESS_BAR_VISIBILITY";
 
-    public static String LOADED_VIDEOS_LIST = "LOADED_VIDEOS_LIST";
+    public static String LOADED_VIDEOS_NAMES_LIST = "LOADED_VIDEOS_NAMES_LIST";
 }

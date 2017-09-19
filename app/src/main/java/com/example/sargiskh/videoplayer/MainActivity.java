@@ -56,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         setListeners();
+
+        handleSavedInstanceState(savedInstanceState);
     }
 
     @Override
@@ -78,11 +80,9 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
     }
 
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventFromService(EventVideosNamesDownloadedMessage event){
         if (event.isConnectionError()) {
-            //TODO
             cache.getCachedVideosNames();
             if (cache.isCacheAvailable()) {
                 cache.setCurrentPlayingIndex(0);
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void messageEventFromService(EventVideoDownloadedMessage event){
-        cache.setCachingFinished(event.isCachingFinished());
+        cache.setCaching(event.isCaching());
         if (event.isConnectionError()) {
             return;
         }
@@ -113,14 +113,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     private void setFullScreen() {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
-
 
     private void setListeners() {
 
@@ -175,8 +173,10 @@ public class MainActivity extends AppCompatActivity {
             cache = Cache.getInstance();
         }
 
-        if (savedInstanceState != null) {
-
+        if (savedInstanceState == null) {
+            cache.setCaching(false);
+            loadVideosNames();
+        } else {
             int videoPlayedDuration = savedInstanceState.getInt(Constants.VIDEO_PLAYED_DURATION);
             boolean isPlaying = savedInstanceState.getBoolean(Constants.IS_PLAYING);
 
@@ -191,12 +191,10 @@ public class MainActivity extends AppCompatActivity {
                     videoView.start();
                 }
             } else {
-                if (!isCaching) {
-                    startDownloading();
+                if (!cache.isCaching()) {
+                    loadVideosNames();
                 }
             }
-        } else {
-            loadVideosNames();
         }
     }
 
@@ -209,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playNextVideo() {
-        if (cache.getCurrentPlayingIndex() == cache.getCachedVideosCount() - 1 && !cache.isCachingFinished()) {
+        if (cache.getCurrentPlayingIndex() == cache.getCachedVideosCount() - 1 && !cache.isCaching()) {
             cache.setCurrentPlayingIndex(-1);
             loadVideosNames();
         } else {
@@ -228,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadVideos(ArrayList<String> loadedVideosNames) {
         Bundle bundle = new Bundle();
-        bundle.putStringArrayList(Constants.LOADED_VIDEOS_LIST, loadedVideosNames);
+        bundle.putStringArrayList(Constants.LOADED_VIDEOS_NAMES_LIST, loadedVideosNames);
         Intent intent = new Intent(this, VideoDownloaderService.class);
         intent.putExtras(bundle);
         startService(intent);
