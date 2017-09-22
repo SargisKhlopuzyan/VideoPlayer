@@ -10,8 +10,11 @@ public class EventVideoDownloadedMessage {
     private boolean isCaching = false;
 
     public EventVideoDownloadedMessage(boolean isConnectionError, boolean isCaching) {
-        this.downloadedVideoName = null;
         this.isConnectionError = isConnectionError;
+        this.isCaching = isCaching;
+    }
+
+    public EventVideoDownloadedMessage(boolean isCaching) {
         this.isCaching = isCaching;
     }
 
