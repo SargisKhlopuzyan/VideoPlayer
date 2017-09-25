@@ -27,8 +27,6 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 
-
-
 public class VideoDownloaderService extends IntentService {
 
     private ArrayList<String> videosToDownload = new ArrayList<>();
@@ -56,9 +54,7 @@ public class VideoDownloaderService extends IntentService {
 
         for (int i = 0; i < videosToDownload.size(); i++) {
             if (Utils.isNetworkAvailable(this)) {
-                if (isVideoCached(videosToDownload.get(i))) {
-                    EventBus.getDefault().post(new EventVideoDownloadedMessage(true, i == videosToDownload.size()-1));
-                } else {
+                if (!isVideoCached(videosToDownload.get(i))) {
                     downloadVideo(i);
                 }
             } else {
@@ -73,15 +69,15 @@ public class VideoDownloaderService extends IntentService {
         rootFile.mkdir();
     }
 
-    private String checkVideoNameSpelling(String name) {
-        return name.replace(" ", "%20");
-    }
-
     private boolean isVideoCached(String name) {
         File videoFile = new File(Constants.CACHE_FOLDER_PATH, name);
         if (videoFile.exists())
             return true;
         return false;
+    }
+
+    private String checkVideoNameSpelling(String name) {
+        return name.replace(" ", "%20");
     }
 
     private void downloadVideo(int i) {
@@ -94,39 +90,31 @@ public class VideoDownloaderService extends IntentService {
         RetrofitInterface retrofitInterface = retrofit.create(RetrofitInterface.class);
         Call<ResponseBody> request = retrofitInterface.downloadFile(videoName);
 
+        boolean isCashingFinished = i == videosToDownload.size() - 1;
         try {
-            handleDownload(request.execute().body(), originalVideoName, i == videosToDownload.size()-1);
+            handleDownload(request.execute().body(), originalVideoName, isCashingFinished);
         } catch (IOException e) {
-            Toast.makeText(getApplicationContext(),e.getMessage(), Toast.LENGTH_SHORT).show();
+            EventBus.getDefault().post(new EventVideoDownloadedMessage(true, isCashingFinished));
         }
     }
 
-    private void handleDownload(ResponseBody body, String originalVideoName, boolean isLast) {
+    private void handleDownload(ResponseBody body, String originalVideoName, boolean isCashingFinished) throws IOException {
 
-        try {
-            InputStream bufferedInputStream = new BufferedInputStream(body.byteStream(), 1024*8);
+        InputStream bufferedInputStream = new BufferedInputStream(body.byteStream(), 1024*8);
+        File outputFile = new File(Constants.CACHE_FOLDER_PATH, originalVideoName);
+        OutputStream fileOutputStream = new FileOutputStream(outputFile);
 
-            File outputFile = new File(Constants.CACHE_FOLDER_PATH, originalVideoName);
+        int count;
+        byte data[] = new byte[1024*4];
 
-            OutputStream fileOutputStream = new FileOutputStream(outputFile);
-
-            int count;
-            byte data[] = new byte[1024*4];
-
-            while ((count = bufferedInputStream.read(data)) != -1) {
-                fileOutputStream.write(data, 0, count);
-            }
-            fileOutputStream.flush();
-            fileOutputStream.close();
-            bufferedInputStream.close();
-
-            EventBus.getDefault().post(new EventVideoDownloadedMessage(true, isLast));
-
-        } catch (FileNotFoundException e) {
-            EventBus.getDefault().post(new EventVideoDownloadedMessage(false, isLast));
-        } catch (IOException e) {
-            EventBus.getDefault().post(new EventVideoDownloadedMessage(false, isLast));
+        while ((count = bufferedInputStream.read(data)) != -1) {
+            fileOutputStream.write(data, 0, count);
         }
+        fileOutputStream.flush();
+        fileOutputStream.close();
+        bufferedInputStream.close();
+
+        EventBus.getDefault().post(new EventVideoDownloadedMessage(originalVideoName, isCashingFinished));
     }
 
     @Override

@@ -1,6 +1,5 @@
 package com.example.sargiskh.videoplayer.cache;
 
-import android.os.Environment;
 import android.util.Log;
 
 import com.example.sargiskh.videoplayer.helpers.Constants;
@@ -23,21 +22,20 @@ public class Cache {
         return instance;
     }
 
-    boolean isCaching = true;
+    boolean isCachingFinished = true;
     private int currentPlayingIndex = 0;
 
     private ArrayList<String> cachedVideosList = new ArrayList<>();
 
-
     // Gets caching state
-    public void setCaching(boolean isCaching) {
-        this.isCaching = isCaching;
-    }
-    // Sets caching state
-    public boolean isCaching() {
-        return isCaching;
+    public void setCachingFinishedState(boolean isCachingFinished) {
+        this.isCachingFinished = isCachingFinished;
     }
 
+    // Sets caching state
+    public boolean isCachingFinished() {
+        return isCachingFinished;
+    }
 
     // Set current playing index
     public void setCurrentPlayingIndex(int currentPlayingIndex) {
@@ -54,18 +52,6 @@ public class Cache {
         return cachedVideosList.size();
     }
 
-
-    // Gets next video path if exists
-    public String getFirstVideoPath() {
-
-        getCachedVideosNames();
-        if (cachedVideosList.size() == 0) {
-            return null;
-        }
-
-        return cachedVideosList.get(currentPlayingIndex);
-    }
-
     // Gets current playing video path
     public String getCurrentVideoPath() {
 
@@ -73,24 +59,28 @@ public class Cache {
             return null;
         }
 
-        return cachedVideosList.get(currentPlayingIndex);
+        return  Constants.CACHE_FOLDER_PATH + File.separator + cachedVideosList.get(currentPlayingIndex);
     }
 
     // Gets next video path if exists
     public String getNextVideoPath() {
 
         if (cachedVideosList.size() == 0) {
+            Log.e("LOG_TAG", "1");
             return null;
         }
 
         ++currentPlayingIndex;
         if (currentPlayingIndex >= cachedVideosList.size()) {
+            Log.e("LOG_TAG", "2");
             currentPlayingIndex = 0;
         }
 
         if (isCacheAvailable(cachedVideosList.get(currentPlayingIndex))) {
-            return cachedVideosList.get(currentPlayingIndex);
+            Log.e("LOG_TAG", "3");
+            return Constants.CACHE_FOLDER_PATH + File.separator + cachedVideosList.get(currentPlayingIndex);
         } else {
+            Log.e("LOG_TAG", "4");
             cachedVideosList.remove(currentPlayingIndex);
             --currentPlayingIndex;
             return getNextVideoPath();
@@ -99,8 +89,7 @@ public class Cache {
 
     // Checks if cache with path is available
     private boolean isCacheAvailable(String name) {
-        String cachePath = Environment.getExternalStorageDirectory() + File.separator + Constants.CACHE_FOLDER_NAME + File.separator + name;
-        File file = new File(cachePath);
+        File file = new File(Constants.CACHE_FOLDER_PATH, name);
         return file.exists();
     }
 
@@ -110,15 +99,13 @@ public class Cache {
     }
 
 
-
     public boolean isCacheAvailable() {
         return cachedVideosList.size() > 0;
     }
 
     public void getCachedVideosNames() {
         cachedVideosList.clear();
-        String cacheDir = Environment.getExternalStorageDirectory() + File.separator + Constants.CACHE_FOLDER_NAME;
-        File rootFile = new File(cacheDir);
+        File rootFile = new File(Constants.CACHE_FOLDER_PATH);
         if (!rootFile.isDirectory()) {
             return;
         }
@@ -140,21 +127,20 @@ public class Cache {
 
     public boolean removeUnnecessaryCachedVideos(ArrayList<String> loadedVideosNamesList) {
 
-        boolean isVideosNamesListChanged = false;
+        boolean isCachedVideosNamesListChanged = false;
 
         getCachedVideosNames();
 
         if (loadedVideosNamesList.size() != cachedVideosList.size()) {
-            isVideosNamesListChanged = true;
+            isCachedVideosNamesListChanged = true;
         }
 
         for (String name : cachedVideosList) {
             if (!loadedVideosNamesList.contains(name)) {
-                String videoAddress = Constants.CACHE_PATH + name;
-                File videoFile = new File(videoAddress);
+                File videoFile = new File(Constants.CACHE_FOLDER_PATH, name);
                 if (videoFile.exists()) {
                     if (videoFile.delete()) {
-                        isVideosNamesListChanged = true;
+                        isCachedVideosNamesListChanged = true;
                         cachedVideosList.remove(name);
                     } else {
                         Log.e("LOG_TAG", "Can not delete video");
@@ -162,6 +148,6 @@ public class Cache {
                 }
             }
         }
-        return isVideosNamesListChanged;
+        return isCachedVideosNamesListChanged;
     }
 }

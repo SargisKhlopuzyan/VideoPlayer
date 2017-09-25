@@ -9,23 +9,24 @@ import java.util.ArrayList;
 public class EventVideosNamesDownloadedMessage {
 
     private ArrayList<String> videosNames = new ArrayList<>();
-    private boolean isConnectionError = false;
+    private boolean isLoadingError = false;
 
-    public EventVideosNamesDownloadedMessage(ArrayList<String> videosNames, boolean isConnectionError) {
+    public EventVideosNamesDownloadedMessage(ArrayList<String> videosNames) {
         this.videosNames = videosNames;
-        this.isConnectionError = isConnectionError;
+        this.isLoadingError = false;
     }
 
-    public EventVideosNamesDownloadedMessage(boolean isConnectionError) {
-        this.isConnectionError = isConnectionError;
+    public EventVideosNamesDownloadedMessage(boolean isLoadingError) {
+        this.videosNames = null;
+        this.isLoadingError = isLoadingError;
     }
 
     public ArrayList<String> getVideosNames() {
         return videosNames;
     }
 
-    public boolean isConnectionError() {
-        return isConnectionError;
+    public boolean isLoadingError() {
+        return isLoadingError;
     }
 
 }

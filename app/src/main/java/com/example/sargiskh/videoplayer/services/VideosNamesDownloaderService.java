@@ -2,10 +2,10 @@ package com.example.sargiskh.videoplayer.services;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.util.Log;
 
 import com.example.sargiskh.videoplayer.eventbus.EventVideosNamesDownloadedMessage;
 import com.example.sargiskh.videoplayer.helpers.Constants;
-import com.example.sargiskh.videoplayer.helpers.Utils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.jsoup.Jsoup;
@@ -30,23 +30,18 @@ public class VideosNamesDownloaderService extends IntentService {
 
     private void downloadVideosNames(){
 
-        Document doc = null;
+        Document doc;
         try {
             doc = Jsoup.connect(Constants.BASE_URL).get();
+            getVideosNamesList(doc);
         } catch (IOException e) {
-            EventBus.getDefault().post(new EventVideosNamesDownloadedMessage(true));
-        }
-
-        Elements elements = doc.select("a");
-
-        if (Utils.isNetworkAvailable(this)) {
-            getVideosNamesList(elements);
-        } else {
             EventBus.getDefault().post(new EventVideosNamesDownloadedMessage(true));
         }
     }
 
-    private void getVideosNamesList(Elements elements) {
+    private void getVideosNamesList(Document document) {
+
+        Elements elements = document.select("a");
 
         ArrayList<String> names = new ArrayList<>();
 
@@ -55,7 +50,6 @@ public class VideosNamesDownloaderService extends IntentService {
                 names.add(element.html());
             }
         }
-        EventBus.getDefault().post(new EventVideosNamesDownloadedMessage(names, false));
+        EventBus.getDefault().post(new EventVideosNamesDownloadedMessage(names));
     }
-
 }

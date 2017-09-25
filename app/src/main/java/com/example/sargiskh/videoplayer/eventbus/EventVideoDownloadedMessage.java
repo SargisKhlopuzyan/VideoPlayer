@@ -6,34 +6,31 @@ package com.example.sargiskh.videoplayer.eventbus;
 public class EventVideoDownloadedMessage {
 
     private String downloadedVideoName = null;
-    private boolean isConnectionError = false;
-    private boolean isCaching = false;
+    private boolean isLoadingError = false;
+    private boolean isCashingFinished = true;
 
-    public EventVideoDownloadedMessage(boolean isConnectionError, boolean isCaching) {
-        this.isConnectionError = isConnectionError;
-        this.isCaching = isCaching;
+    public EventVideoDownloadedMessage(boolean isLoadingError, boolean isCashingFinished) {
+        this.downloadedVideoName = null;
+        this.isLoadingError = isLoadingError;
+        this.isCashingFinished = isCashingFinished;
     }
 
-    public EventVideoDownloadedMessage(boolean isCaching) {
-        this.isCaching = isCaching;
-    }
-
-    public EventVideoDownloadedMessage(String downloadedVideoName, boolean isCaching) {
-        this.isConnectionError = false;
+    public EventVideoDownloadedMessage(String downloadedVideoName, boolean isCashingFinished) {
         this.downloadedVideoName = downloadedVideoName;
-        this.isCaching = isCaching;
+        this.isLoadingError = false;
+        this.isCashingFinished = isCashingFinished;
     }
 
     public String getDownloadedVideoName() {
         return downloadedVideoName;
     }
 
-    public boolean isConnectionError() {
-        return isConnectionError;
+    public boolean isLoadingError() {
+        return isLoadingError;
     }
 
-    public boolean isCaching() {
-        return isCaching;
+    public boolean isCachingFinished() {
+        return isCashingFinished;
     }
 
 }
