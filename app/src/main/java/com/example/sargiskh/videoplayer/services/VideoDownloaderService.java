@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.Nullable;
-import android.widget.Toast;
 
 import com.example.sargiskh.videoplayer.eventbus.EventVideoDownloadedMessage;
 import com.example.sargiskh.videoplayer.helpers.Constants;
@@ -16,7 +15,6 @@ import org.greenrobot.eventbus.EventBus;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,8 +79,7 @@ public class VideoDownloaderService extends IntentService {
     }
 
     private void downloadVideo(int i) {
-        String originalVideoName = videosToDownload.get(i);
-        String videoName = checkVideoNameSpelling(originalVideoName);
+        String videoName = videosToDownload.get(i);
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(Constants.BASE_URL)
@@ -92,16 +89,16 @@ public class VideoDownloaderService extends IntentService {
 
         boolean isCashingFinished = i == videosToDownload.size() - 1;
         try {
-            handleDownload(request.execute().body(), originalVideoName, isCashingFinished);
+            handleDownload(request.execute().body(), videoName, isCashingFinished);
         } catch (IOException e) {
             EventBus.getDefault().post(new EventVideoDownloadedMessage(true, isCashingFinished));
         }
     }
 
-    private void handleDownload(ResponseBody body, String originalVideoName, boolean isCashingFinished) throws IOException {
+    private void handleDownload(ResponseBody body, String videoName, boolean isCashingFinished) throws IOException {
 
         InputStream bufferedInputStream = new BufferedInputStream(body.byteStream(), 1024*8);
-        File outputFile = new File(Constants.CACHE_FOLDER_PATH, originalVideoName);
+        File outputFile = new File(Constants.CACHE_FOLDER_PATH, videoName);
         OutputStream fileOutputStream = new FileOutputStream(outputFile);
 
         int count;
@@ -114,7 +111,7 @@ public class VideoDownloaderService extends IntentService {
         fileOutputStream.close();
         bufferedInputStream.close();
 
-        EventBus.getDefault().post(new EventVideoDownloadedMessage(originalVideoName, isCashingFinished));
+        EventBus.getDefault().post(new EventVideoDownloadedMessage(videoName, isCashingFinished));
     }
 
     @Override

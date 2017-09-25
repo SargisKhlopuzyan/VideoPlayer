@@ -24,8 +24,15 @@ public class Cache {
 
     boolean isCachingFinished = true;
     private int currentPlayingIndex = 0;
+    private boolean isVideoPlaying = false;
 
     private ArrayList<String> cachedVideosList = new ArrayList<>();
+
+
+    public String getCurrentVideoName() {
+        return cachedVideosList.get(currentPlayingIndex);
+    }
+
 
     // Gets caching state
     public void setCachingFinishedState(boolean isCachingFinished) {
@@ -46,6 +53,13 @@ public class Cache {
         return currentPlayingIndex;
     }
 
+    public boolean isVideoPlaying() {
+        return isVideoPlaying;
+    }
+
+    public void setVideoPlayingState(boolean isVideoPlaying) {
+        this.isVideoPlaying = isVideoPlaying;
+    }
 
     // Gets current playing video path
     public int getCachedVideosCount() {
@@ -66,21 +80,17 @@ public class Cache {
     public String getNextVideoPath() {
 
         if (cachedVideosList.size() == 0) {
-            Log.e("LOG_TAG", "1");
             return null;
         }
 
         ++currentPlayingIndex;
         if (currentPlayingIndex >= cachedVideosList.size()) {
-            Log.e("LOG_TAG", "2");
             currentPlayingIndex = 0;
         }
 
         if (isCacheAvailable(cachedVideosList.get(currentPlayingIndex))) {
-            Log.e("LOG_TAG", "3");
             return Constants.CACHE_FOLDER_PATH + File.separator + cachedVideosList.get(currentPlayingIndex);
         } else {
-            Log.e("LOG_TAG", "4");
             cachedVideosList.remove(currentPlayingIndex);
             --currentPlayingIndex;
             return getNextVideoPath();
@@ -97,7 +107,6 @@ public class Cache {
     public void addCachedVideo(String name) {
         cachedVideosList.add(name);
     }
-
 
     public boolean isCacheAvailable() {
         return cachedVideosList.size() > 0;
@@ -123,7 +132,6 @@ public class Cache {
             }
         }
     }
-
 
     public boolean removeUnnecessaryCachedVideos(ArrayList<String> loadedVideosNamesList) {
 

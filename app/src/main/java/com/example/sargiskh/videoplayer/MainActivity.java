@@ -15,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.MediaController;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.VideoView;
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.bind(this);
 
+        setupMediaController();
+
         setListeners();
 
         if (cache == null) {
@@ -76,7 +79,9 @@ public class MainActivity extends AppCompatActivity {
         } else {
             if (savedInstanceState == null) {
                 cache.getCachedVideosNames();
-//                cache.setCachingFinishedState(true);
+                if (cache.isCacheAvailable()) {
+                    playVideo();
+                }
                 loadVideosNames();
             } else {
                 handleSavedInstanceState(savedInstanceState);
@@ -89,6 +94,17 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    // Sets MediaController
+    private void setupMediaController() {
+
+        // create an object of media controller class
+        MediaController mediaControls = new MediaController(this);
+        mediaControls.setAnchorView(videoView);
+
+        // set the media controller for video view
+        videoView.setMediaController(mediaControls);
     }
 
     private void setListeners() {
@@ -187,10 +203,14 @@ public class MainActivity extends AppCompatActivity {
                 cache.setCurrentPlayingIndex(0);
                 playVideo();
             } else {
-                cache.setCurrentPlayingIndex(-1);
+                cache.setCurrentPlayingIndex(0);
                 //TODO enable network !!!
             }
             return;
+        }
+
+        if (cache.isCacheAvailable()) {
+            playVideo();
         }
 
         boolean isCachedVideosNamesListChanged = cache.removeUnnecessaryCachedVideos(event.getVideosNames());
@@ -204,15 +224,12 @@ public class MainActivity extends AppCompatActivity {
 
         cache.setCachingFinishedState(event.isCachingFinished());
         if (event.isLoadingError()) {
-            Log.e("LOG_TAG", "event.isLoadingError() : " + event.isLoadingError());
             return;
         }
-
-        Log.e("LOG_TAG", "event.getDownloadedVideoName(): " + event.getDownloadedVideoName());
+        Log.e("LOG_TAG", "Downloaded: " + event.getDownloadedVideoName());
         cache.addCachedVideo(event.getDownloadedVideoName());
 
         if(cache.getCachedVideosCount() == 1) {
-            Log.e("LOG_TAG", "playVideo()");
             playVideo();
         }
     }
@@ -238,7 +255,8 @@ public class MainActivity extends AppCompatActivity {
                     cache.setCachingFinishedState(false);
                     loadVideosNames();
                 } else {
-                    Snackbar.make(findViewById(R.id.root), "Permission Denied, Please allow to proceed !", Snackbar.LENGTH_LONG).show();
+                    requestPermission();
+//                    Snackbar.make(findViewById(R.id.root), "Permission Denied, Please allow to proceed !", Snackbar.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -247,25 +265,34 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void playVideo() {
-        String path = cache.getCurrentVideoPath();
-        Log.e("LOG_TAG", "path: " + path);
-        // set the path for the video view
-        videoView.setVideoPath(path);
-        videoView.start();
-    }
 
-    private void playNextVideo() {
-        if (cache.getCurrentPlayingIndex() == cache.getCachedVideosCount() - 1 && cache.isCachingFinished()) {
-            cache.setCurrentPlayingIndex(-1);
-            loadVideosNames();
-        } else {
-            String path = cache.getNextVideoPath();
+        if (videoView.isPlaying()) {
+            return;
+        }
+
+        String path = cache.getCurrentVideoPath();
+        if (path != null) {
+            Log.e("LOG_TAG", "playing : " + cache.getCurrentVideoName());
             // set the path for the video view
             videoView.setVideoPath(path);
             videoView.start();
         }
     }
 
+    private void playNextVideo() {
+        if (cache.getCurrentPlayingIndex() == cache.getCachedVideosCount() - 1 && cache.isCachingFinished()) {
+            cache.setCurrentPlayingIndex(0);
+            loadVideosNames();
+        } else {
+            String path = cache.getNextVideoPath();
+            if (path != null) {
+                Log.e("LOG_TAG", "playing : " + cache.getCurrentVideoName());
+                // set the path for the video view
+                videoView.setVideoPath(path);
+                videoView.start();
+            }
+        }
+    }
 
     private void loadVideosNames() {
         Intent intent = new Intent(this, VideosNamesDownloaderService.class);
